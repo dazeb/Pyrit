@@ -48,10 +48,104 @@ These are examples of how multiple computational nodes can access a single stora
 See [CHANGELOG](https://github.com/JPaulMora/Pyrit/blob/master/CHANGELOG) file for a better description.
  
 
-# How to use #
+# Installation #
 
-_Pyrit_ compiles and runs fine on Linux, MacOS X and BSD. I don't care about Windows; drop me a line (read: patch) if you make _Pyrit_ work without copying half of GNU ...
-A guide for installing _Pyrit_ on your system can be found in the [wiki](https://github.com/JPaulMora/Pyrit/wiki). There is also a [Tutorial](https://github.com/JPaulMora/Pyrit/wiki/Usage) and a [reference manual](https://github.com/JPaulMora/Pyrit/wiki/ReferenceManual) for the commandline-client.
+_Pyrit_ compiles and runs on Linux, MacOS X and BSD. Windows is not supported.
+
+It still needs **Python 2.7**, which current Debian/Ubuntu/Kali images no longer ship. On those systems, install Python 2.7 with [pyenv](https://github.com/pyenv/pyenv) and the distro CUDA packages as shown below. Older notes that used `python2-dev`, `sudo pip`, `apt-get install pyrit`, or Kali 2018 NVIDIA DKMS steps will not work on a recent install.
+
+There is also a [Tutorial](https://github.com/JPaulMora/Pyrit/wiki/Usage) and a [reference manual](https://github.com/JPaulMora/Pyrit/wiki/ReferenceManual) for the commandline-client.
+
+## Recent Debian / Ubuntu / Kali
+
+### 1. Update the system
+
+```bash
+sudo apt update
+sudo apt upgrade -y
+```
+
+Reboot if the kernel was upgraded.
+
+### 2. NVIDIA GPU (optional)
+
+Skip this if you only want the CPU core.
+
+```bash
+lspci | grep -i vga
+sudo apt install -y nvidia-driver nvidia-cuda-toolkit
+sudo reboot
+```
+
+After reboot, `nvcc --version` should work. `hashcat -b` is a useful extra check that the GPU stack is alive.
+
+### 3. Headers needed by pyenv and Pyrit
+
+```bash
+sudo apt install -y \
+  build-essential curl git \
+  libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
+  libpcap-dev
+```
+
+`zlib-devel` / `openssl-dev` are Fedora names; on Debian the packages are `zlib1g-dev` and `libssl-dev`.
+
+### 4. Python 2.7.18 via pyenv
+
+```bash
+curl https://pyenv.run | bash
+```
+
+Add this to `~/.zshrc` (or `~/.bashrc` if you use bash), then open a new shell:
+
+```bash
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
+```
+
+```bash
+pyenv install 2.7.18
+```
+
+### 5. Clone, select Python 2.7, and build
+
+```bash
+git clone https://github.com/JPaulMora/Pyrit.git
+cd Pyrit
+pyenv local 2.7.18
+pip install 'scapy==2.4.5' 'sqlalchemy<2'
+python setup.py clean
+python setup.py build
+python setup.py install
+```
+
+Do **not** prefix those `python`/`pip` commands with `sudo` — that would ignore pyenv and hit the system interpreter.
+
+`scapy` is required for analyze/attack. `sqlalchemy` is optional unless you use SQL storage; PostgreSQL also needs `psycopg2==2.8.6`.
+
+Leave the source tree (`cd`) before running `pyrit`, so Python does not pick up the local `cpyrit` package instead of the installed one:
+
+```bash
+cd
+pyrit list_cores
+pyrit benchmark
+```
+
+### 6. CUDA module (optional)
+
+The distro `nvidia-cuda-toolkit` package puts `nvcc` on `PATH` (`/usr/bin/nvcc`). From the Pyrit tree, with the same pyenv Python 2.7:
+
+```bash
+cd modules/cpyrit_cuda
+python setup.py build
+python setup.py install
+```
+
+Then set `use_CUDA = true` (and `use_OpenCL = false`) in `~/.pyrit/config` and run `pyrit list_cores` again.
+
+OpenCL is similar from `modules/cpyrit_opencl`. On OpenCL 2+ you may need `#define CL_USE_DEPRECATED_OPENCL_1_2_APIS` at the top of `_cpyrit_opencl.c` before building.
 
 
 # How to participate #
