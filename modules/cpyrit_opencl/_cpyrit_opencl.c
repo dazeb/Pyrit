@@ -40,7 +40,9 @@
 #include <Python.h>
 #include <structmember.h>
 #ifdef __APPLE__
-    #include <cl.h>
+    #define CL_SILENCE_DEPRECATION
+    #define CL_USE_DEPRECATED_OPENCL_1_2_APIS
+    #include <OpenCL/opencl.h>
 #else
     #include <CL/cl.h>
 #endif /* __APPLE__ */

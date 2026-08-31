@@ -42,10 +42,10 @@ import bisect
 import io
 import gzip
 import os
-import queue
+import Queue
 import random
 import socket
-import xmlrpc.server
+from SimpleXMLRPCServer import SimpleXMLRPCServer
 import sys
 import struct
 import time
@@ -539,7 +539,7 @@ class Thread(threading.Thread):
         self.join()
 
 
-class AsyncXMLRPCServer(xmlrpc.server.SimpleXMLRPCServer, Thread):
+class AsyncXMLRPCServer(SimpleXMLRPCServer, Thread):
     """A stoppable XMLRPCServer
 
        The main socket is made non-blocking so we can check on
@@ -549,7 +549,7 @@ class AsyncXMLRPCServer(xmlrpc.server.SimpleXMLRPCServer, Thread):
     """
 
     def __init__(self, iface='', port=17934):
-        xmlrpc.server.SimpleXMLRPCServer.__init__(self, (iface, port), \
+        SimpleXMLRPCServer.__init__(self, (iface, port), \
                                                         logRequests=False)
         Thread.__init__(self)
         self.setDaemon(True)

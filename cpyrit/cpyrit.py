@@ -38,9 +38,9 @@ import sys
 import threading
 import time
 import uuid
-from . import util
+import util
 import warnings
-import xmlrpc.client
+import xmlrpclib
 
 import config
 import network
@@ -203,7 +203,7 @@ try:
 except ImportError:
     pass
 except Exception as e:
-    print(f"Failed to load Pyrit's OpenCL-core ('{e}').", file=sys.stderr)
+    print >> sys.stderr, "Failed to load Pyrit's OpenCL-core ('%s')." % e
 else:
     version_check(_cpyrit_opencl)
 
@@ -226,7 +226,7 @@ try:
 except ImportError:
     pass
 except Exception as e:
-    print(f"Failed to load Pyrit's CUDA-core ('{e}').", file=sys.stderr)
+    print >> sys.stderr, "Failed to load Pyrit's CUDA-core ('%s')." % e
 else:
     version_check(_cpyrit_cuda)
 
@@ -337,7 +337,7 @@ class NetworkCore(util.AsyncXMLRPCServer, Core):
                 client.ping()
                 return client
             else:
-                raise xmlrpc.client.Fault(403, "Client unknown or timed-out")
+                raise xmlrpclib.Fault(403, "Client unknown or timed-out")
 
     def rpc_register(self, uuids):
         with self.client_lock:
@@ -368,7 +368,7 @@ class NetworkCore(util.AsyncXMLRPCServer, Core):
         else:
             client.workunits.append((essid, pwlist))
             key, buf = storage.PAW2_Buffer.pack(pwlist)
-            return (essid, xmlrpc.client.Binary(buf))
+            return (essid, xmlrpclib.Binary(buf))
 
     def rpc_scatter(self, client_uuid, encoded_buf):
         client = self._get_client(client_uuid)

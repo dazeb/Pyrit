@@ -581,7 +581,7 @@ class Pyrit_CLI(object):
         )
 
 
-        self.tell(f"Parsing packets from '{capturefile}'...")  # f-string for formatting
+        self.tell("Parsing packets from '%s'..." % capturefile)
         pckt_rdr = cpyrit.pckttools.PcapDevice(use_bpf=True)
         try:
             pckt_rdr.open_offline(capturefile)
@@ -590,9 +590,10 @@ class Pyrit_CLI(object):
                 pckt_rdr.open_live(capturefile)
             except IOError as live_error:
                 raise PyritRuntimeError(
-                    f"Failed to open '{capturefile}' either as a file ('{offline_error}') "
-                    f"or as a device ('{live_error}')"
-                ) from live_error  # Chain exceptions for better tracebacks
+                    "Failed to open '%s' either as a file ('%s') "
+                    "or as a device ('%s')"
+                    % (capturefile, offline_error, live_error)
+                )
         try:
             parser.parse_pcapdevice(pckt_rdr)
         except (KeyboardInterrupt, SystemExit):
@@ -602,14 +603,16 @@ class Pyrit_CLI(object):
         finally:
             writer.close()
         for i, ap in enumerate(parser):
-            self.tell(f"#{i}: AccessPoint {ap} ('{ap.essid}')")  # f-string formatting
+            self.tell("#%s: AccessPoint %s ('%s')" % (i, ap, ap.essid))
             for j, sta in enumerate(ap):
                 auths = sta.getAuthentications()
                 if len(auths) > 0:  # Check if there are any authentications ('> 0')
-                    self.tell(f"  # {j}: Station {sta}, {len(auths)} handshake(s)")
+                    self.tell("  # %s: Station %s, %s handshake(s)"
+                              % (j, sta, len(auths)))
                     for k, auth in enumerate(auths):
-                        self.tell(f"    # {k}: {auth}")
-        self.tell(f"\nNew pcap-file '{outfile}' written ({writer.pcktcount} out of {parser.pcktcount} packets)")
+                        self.tell("    # %s: %s" % (k, auth))
+        self.tell("\nNew pcap-file '%s' written (%s out of %s packets)"
+                  % (outfile, writer.pcktcount, parser.pcktcount))
     stripLive.cli_options = (('-r', '-o'), ())
 
     def export_hashdb(self, storage, outfile, essid=None):

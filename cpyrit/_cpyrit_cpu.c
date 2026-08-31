@@ -717,8 +717,7 @@ EAPOLCracker_dealloc(EAPOLCracker *self)
     if (self->eapolframe)
         PyMem_Free(self->eapolframe);
 
-    // Decrement reference count of self (Python 3 way)
-    Py_DECREF(self);
+    self->ob_type->tp_free((PyObject*)self);
 }
 
 PyDoc_STRVAR(EAPOLCracker_solve__doc__,
@@ -752,7 +751,7 @@ EAPOLCracker_solve(EAPOLCracker *self, PyObject *args)
                 return NULL;
             } else {
                 pb = pmkbuffer_obj->ob_type->tp_as_buffer;
-                buffersize = (*pb->bf_getbuffer)(pmkbuffer_obj, 0, (void**)&t);
+                buffersize = (*pb->bf_getreadbuffer)(pmkbuffer_obj, 0, (void**)&t);
                 if (buffersize % 32 != 0)
                 {
                     PyErr_SetString(PyExc_ValueError, "Object's buffer's length is not a multiple of 32.");
@@ -909,7 +908,7 @@ CCMPCracker_dealloc(CCMPCracker *self)
         PyMem_Free(self->pke1);
     if (self->pke2)
         PyMem_Free(self->pke2);
-    Py_DECREF(self);
+    self->ob_type->tp_free((PyObject*)self);
 }
 
 #ifdef COMPILE_SSE2
@@ -1174,7 +1173,7 @@ CCMPCracker_solve(CCMPCracker *self, PyObject *args)
                 return NULL;
             } else {
                 pb = pmkbuffer_obj->ob_type->tp_as_buffer;
-                buffersize = (*pb->bf_getbuffer)(pmkbuffer_obj, 0, (void**)&t);
+                buffersize = (*pb->bf_getreadbuffer)(pmkbuffer_obj, 0, (void**)&t);
                 if (buffersize % 32 !=0)
                 {
                     PyErr_SetString(PyExc_ValueError, "Object's buffer's length is not a multiple of 32.");
@@ -1246,7 +1245,7 @@ CowpattyResult_dealloc(CowpattyResult* self)
 {
     if (self->buffer)
         PyMem_Free(self->buffer);
-    Py_DECREF(self);
+    self->ob_type->tp_free((PyObject*)self);
 }
 
 static Py_ssize_t
@@ -1343,9 +1342,9 @@ PyDoc_STRVAR(CowpattyResult_getpmkbuffer__doc__,
     "Return a buffer-object to directly access the PMKs held by this object.");
 
 static PyObject*
-CowpattyResult_getpmkbuffer(CowpattyResult *self, PyObject *args)
+CowpattyResult_getpmkbuffer(PyObject *self, PyObject *args)
 {
-    return PyObject_GetBuffer(self, NULL, PyBUF_SIMPLE | PyBUF_WRITABLE);
+    return PyBuffer_FromObject(self, 0, Py_END_OF_BUFFER);
 }
 
 /*
@@ -1561,7 +1560,7 @@ PcapDevice_dealloc(PcapDevice *self)
     Py_XDECREF(self->datalink_name);
     if (self->p && self->status == 1)
         pcap_close(self->p);
-    Py_DECREF(self);
+    self->ob_type->tp_free((PyObject*)self);
 }
 
 PyDoc_STRVAR(PcapDevice_close__doc__,
@@ -2180,10 +2179,10 @@ static PyMethodDef CowpattyResult_methods[] =
 };
 
 static PyBufferProcs CowpattyResults_buffer_procs = {
-    CowpattyResult_bf_getreadbuffer, /* bf_getreadbuffer */
-    0,                                 /* bf_getwritebuffer */
-    CowpattyResult_bf_getsegcount,     /* bf_getsegcount */
-    0                                  /* bf_getcharbuffer */
+    (readbufferproc)CowpattyResult_bf_getreadbuffer, /* bf_getreadbuffer */
+    0,                                               /* bf_getwritebuffer */
+    (segcountproc)CowpattyResult_bf_getsegcount,     /* bf_getsegcount */
+    0                                                /* bf_getcharbuffer */
 };
 
 static PySequenceMethods CowpattyResult_seq_methods = {
