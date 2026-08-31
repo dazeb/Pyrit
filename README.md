@@ -1,6 +1,8 @@
 ## Please Read
 
-Pyrit is old, is outdated and it's still Python2 I am currently attempting to rewrite it from scratch, so thanks for all the stars but remember to keep an eye for Python3 version.
+**[Pyrit3](https://github.com/JPaulMora/Pyrit3) is out** — a from-scratch Python 3 rewrite. Use that for new work.
+
+This repository is classic Pyrit. It is still **Python 2.7**, but it has been updated so it builds and runs again on current Debian/Ubuntu/Kali (pyenv + distro CUDA packages). See Installation below.
 
 # Pyrit #
 
@@ -38,6 +40,9 @@ These are examples of how multiple computational nodes can access a single stora
 
 # What's new #
 
+ * **[Pyrit3](https://github.com/JPaulMora/Pyrit3)** — the Python 3 rewrite is released
+ * This classic tree was restored so it works again on Python 2.7 (the incomplete Python 3 conversion is not used)
+ * Install docs for recent Debian/Ubuntu/Kali via pyenv and distro CUDA packages
  * Fixed #479 and #481
  * Pyrit CUDA now compiles in OSX with Toolkit 7.5
  * Added use_CUDA and use_OpenCL in config file
